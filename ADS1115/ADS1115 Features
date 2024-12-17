@@ -1,1 +1,86 @@
+The ADS1115 is a popular 16-bit Analog-to-Digital Converter (ADC) from Texas Instruments. It’s often used in embedded systems and electronics projects due to its high resolution, ease of use, and versatility. Here’s an overview of its features and usage:
 
+Key Features of ADS1115
+	1.	Resolution: 16-bit precision.
+	2.	Channels:
+	•	Four single-ended inputs (A0, A1, A2, A3).
+	•	Two differential inputs (A0-A1, A2-A3).
+	3.	Programmable Gain Amplifier (PGA):
+	•	Built-in PGA with selectable gains ranging from ±256 mV to ±6.144 V full-scale.
+	•	Allows accurate readings even for low-voltage signals.
+	4.	Data Rate:
+	•	Programmable data rates up to 860 samples per second (SPS).
+	5.	Interface:
+	•	I²C communication with configurable slave address.
+	6.	Voltage Supply:
+	•	Operates on a wide voltage range (2.0V to 5.5V).
+	7.	Low Power Consumption:
+	•	Ideal for battery-operated devices.
+	8.	Alert/Ready Pin:
+	•	Configurable as an interrupt for threshold monitoring or data readiness.
+
+Inputs:
+Analog Inputs:
+
+4 Single-Ended Inputs:
+
+Pins A0, A1, A2, and A3 for measuring separate voltages relative to GND.
+
+2 Differential Inputs:
+
+Pin pair A0-A1 and A2-A3 for measuring the voltage difference between two signals.
+Input Voltage Range:
+
+Depending on the PGA (Programmable Gate Amplifier) ​​setting, the input voltage is supported from ±256mV to ±6.144V.
+Power Supply:
+VDD: Supply voltage 2.0V to 5.5V.
+GND: Connection to circuit ground.
+I²C Communication:
+SCL: I²C clock line.
+SDA: I²C data line.
+ADDR pin:
+For setting the I²C address of the device (configurable by connecting to GND, VDD, or other voltages).
+
+Outputs:
+Digital data:
+Output data is sent over the I²C interface.
+A 16-bit value (0 to 65535 for single-ended mode) representing the measured voltage.
+In differential mode, values ​​can be negative (16-bit signed number).
+ALERT/RDY pin:
+
+A programmable output to signal events (such as threshold crossing) or data readiness.
+
+Wiring the ADS1115
+
+Single-Ended Mode:
+	1.	VDD: Connect to the power supply (2.0V - 5.5V).
+	2.	GND: Connect to ground.
+	3.	SCL and SDA: Connect to I²C bus.
+	4.	A0, A1, A2, A3: Connect to analog input signals.
+
+Differential Mode:
+	•	Connect signal pairs to A0-A1 or A2-A3.
+
+Example (Arduino Setup):
+	•	VDD: 5V or 3.3V (depending on your logic level).
+	•	GND: Ground.
+	•	SCL: Analog pin A5 (for Arduino Uno).
+	•	SDA: Analog pin A4 (for Arduino Uno).
+
+Programming the ADS1115
+	1.	I²C Address:
+	•	Base address: 0x48.
+	•	Configurable using the ADDR pin.
+	2.	Libraries:
+	•	Popular libraries include Adafruit ADS1X15 for Arduino.
+	3.	Configuring Registers:
+	•	Configuration Register: Configure input, gain, data rate, and mode.
+	•	Conversion Register: Read ADC conversion results.
+
+Advanced Features
+	•	Threshold Monitoring:
+	•	Configure high and low thresholds for automatic alerts.
+	•	Power-Down Mode:
+	•	Automatically enters power-down mode between conversions for low power applications.
+	•	Gain Selection:
+	•	Adjust the gain setting in the configuration register for varying signal amplitudes.
