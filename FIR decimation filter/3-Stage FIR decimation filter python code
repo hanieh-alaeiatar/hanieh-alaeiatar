@@ -1,1 +1,82 @@
+import numpy as np
+from scipy.signal import firwin, lfilter, freqz, decimate
+import matplotlib.pyplot as plt
 
+
+OSR = 512  # Oversampling ratio
+f_cutoff = 1 / OSR  # Normalized cutoff frequency
+M1, M2, M3 = 8, 8, 8  # Decimation factors for 3 stages (M = M1 * M2 * M3)
+M_total = M1 * M2 * M3
+f_cutoff_stage1 = f_cutoff * M_total / M1
+f_cutoff_stage2 = f_cutoff * M_total / (M1 * M2)
+f_cutoff_stage3 = f_cutoff * M_total / (M1 * M2 * M3)
+
+
+N1, N2, N3 = 128, 128, 128  # Filter orders for each stage
+h1 = firwin(N1 + 1, f_cutoff_stage1, window='hamming')  # Stage 1 filter
+h2 = firwin(N2 + 1, f_cutoff_stage2, window='hamming')  # Stage 2 filter
+h3 = firwin(N3 + 1, f_cutoff_stage3, window='hamming')  # Stage 3 filter
+
+
+plt.figure(figsize=(12, 8))
+for i, (h, stage) in enumerate(zip([h1, h2, h3], ['Stage 1', 'Stage 2', 'Stage 3'])):
+    w, H = freqz(h, worN=8000)
+    plt.plot(w / np.pi, 20 * np.log10(np.abs(H)), label=f'{stage}')
+plt.title('Frequency Responses of Each Stage')
+plt.xlabel('Normalized Frequency (x π rad/sample)')
+plt.ylabel('Magnitude (dB)')
+plt.legend()
+plt.grid()
+plt.show()
+
+fs = 1e6  # original sampling rate (1 MHz)
+t = np.arange(0, 0.01, 1 / fs)  
+signal = np.sin(2 * np.pi * 1000 * t)   
+noise = 0.1 * np.random.randn(len(t))  
+input_signal = signal + noise  
+
+filtered_stage1 = lfilter(h1, 1, input_signal)
+downsampled_stage1 = filtered_stage1[::M1]
+
+filtered_stage2 = lfilter(h2, 1, downsampled_stage1)
+downsampled_stage2 = filtered_stage2[::M2]
+
+filtered_stage3 = lfilter(h3, 1, downsampled_stage2)
+downsampled_stage3 = filtered_stage3[::M3]
+
+plt.figure(figsize=(12, 8))
+plt.subplot(3, 1, 1)
+plt.plot(t[:1000], input_signal[:1000])
+plt.title('Input Signal (Noisy)')
+plt.xlabel('Time (s)')
+plt.grid()
+
+plt.subplot(3, 1, 2)
+plt.plot(np.arange(len(downsampled_stage2)) / (fs / M_total), downsampled_stage2)
+plt.title('Signal After 2nd Stage Decimation')
+plt.xlabel('Time (s)')
+plt.grid()
+
+plt.subplot(3, 1, 3)
+plt.plot(np.arange(len(downsampled_stage3)) / (fs / M_total), downsampled_stage3)
+plt.title('Signal After 3rd Stage Decimation')
+plt.xlabel('Time (s)')
+plt.grid()
+
+plt.tight_layout()
+plt.show()
+
+plt.figure(figsize=(12, 6))
+input_fft = np.abs(np.fft.fft(input_signal))[:len(input_signal) // 2]
+output_fft = np.abs(np.fft.fft(downsampled_stage3))[:len(downsampled_stage3) // 2]
+freqs_input = np.linspace(0, fs / 2, len(input_fft))
+freqs_output = np.linspace(0, fs / (2 * M_total), len(output_fft))
+
+plt.plot(freqs_input, 20 * np.log10(input_fft), label='Input Signal')
+plt.plot(freqs_output, 20 * np.log10(output_fft), label='Output Signal (After Decimation)')
+plt.title('Frequency Response of Input and Output Signals')
+plt.xlabel('Frequency (Hz)')
+plt.ylabel('Magnitude (dB)')
+plt.legend()
+plt.grid()
+plt.show()
